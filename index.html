@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROFESSOR AMMAR Create Your Own Toolkit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 min-h-screen text-white font-sans overflow-hidden">
+
+    <!-- Background Elements -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <div class="absolute top-10 left-10 w-72 h-72 bg-purple-600 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
+        <div class="absolute top-10 right-10 w-72 h-72 bg-pink-600 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style="animation-delay: 2s"></div>
+        <div class="absolute -bottom-32 left-1/2 w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style="animation-delay: 4s"></div>
+    </div>
+
+    <div class="container mx-auto px-4 h-screen flex flex-col justify-center items-center relative z-10">
+        
+        <div class="text-center mb-10 animate-fade-in">
+            <h1 class="text-6xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-indigo-400">
+                LinkBuilder
+            </h1>
+            <p class="text-xl text-gray-300">One link to rule them all. Build your toolkit in seconds Using Professor Ammar tool.</p>
+        </div>
+
+        <!-- Auth Card -->
+        <div class="bg-white/10 backdrop-blur-lg border border-white/20 p-8 rounded-2xl w-full max-w-md shadow-2xl animate-fade-in" style="animation-delay: 0.2s">
+            
+            <!-- Tabs -->
+            <div class="flex mb-6 border-b border-white/20">
+                <button id="tab-login" class="flex-1 pb-2 text-center font-bold text-white border-b-2 border-pink-500 transition-all" onclick="switchTab('login')">Login</button>
+                <button id="tab-register" class="flex-1 pb-2 text-center text-gray-400 transition-all hover:text-white" onclick="switchTab('register')">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-gray-300">Toolkit Name</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-gray-400"><i class="fas fa-link"></i></span>
+                        <input type="text" id="loginName" placeholder="yourname" class="w-full bg-black/30 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 focus:outline-none focus:border-pink-500 transition-colors" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-gray-300">Password</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-gray-400"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="loginPass" placeholder="••••••••" class="w-full bg-black/30 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 focus:outline-none focus:border-pink-500 transition-colors" required>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 py-3 rounded-lg font-bold shadow-lg transform hover:scale-[1.02] transition-all">
+                    Access Dashboard
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-gray-300">Choose toolkit Name (Unique ID)</label>
+                    <input type="text" id="regName" placeholder="e.g. johndoe" class="w-full bg-black/30 border border-white/10 rounded-lg py-2.5 px-4 focus:outline-none focus:border-pink-500 transition-colors" required pattern="[a-zA-Z0-9_-]+" title="Alphanumeric, underscores, and dashes only.">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-gray-300">Admin Password</label>
+                    <input type="password" id="regPass" placeholder="Create a password" class="w-full bg-black/30 border border-white/10 rounded-lg py-2.5 px-4 focus:outline-none focus:border-pink-500 transition-colors" required>
+                </div>
+                <button type="submit" class="w-full bg-white text-indigo-900 py-3 rounded-lg font-bold shadow-lg hover:bg-gray-100 transform hover:scale-[1.02] transition-all">
+                    Create toolkit
+                </button>
+            </form>
+
+            <div id="msg" class="mt-4 text-center text-sm font-semibold min-h-[20px]"></div>
+        </div>
+    </div>
+
+    <!-- Logic -->
+    <script type="module">
+        import { db, doc, getDoc, setDoc } from './config.js';
+
+        // Tab Switching
+        window.switchTab = (tab) => {
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('registerForm');
+            const tabLogin = document.getElementById('tab-login');
+            const tabReg = document.getElementById('tab-register');
+
+            if(tab === 'login') {
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+                tabLogin.classList.add('text-white', 'border-b-2', 'border-pink-500');
+                tabLogin.classList.remove('text-gray-400');
+                tabReg.classList.add('text-gray-400');
+                tabReg.classList.remove('text-white', 'border-b-2', 'border-pink-500');
+            } else {
+                loginForm.classList.add('hidden');
+                regForm.classList.remove('hidden');
+                tabReg.classList.add('text-white', 'border-b-2', 'border-pink-500');
+                tabReg.classList.remove('text-gray-400');
+                tabLogin.classList.add('text-gray-400');
+                tabLogin.classList.remove('text-white', 'border-b-2', 'border-pink-500');
+            }
+            document.getElementById('msg').innerText = '';
+        }
+
+        // Registration Logic
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const pageName = document.getElementById('regName').value.trim().toLowerCase();
+            const password = document.getElementById('regPass').value;
+            const msg = document.getElementById('msg');
+
+            msg.innerText = 'Checking availability...';
+            msg.className = 'mt-4 text-center text-sm text-yellow-400';
+
+            try {
+                const docRef = doc(db, "pages", pageName);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    msg.innerText = 'Page name already taken!';
+                    msg.className = 'mt-4 text-center text-sm text-red-400';
+                } else {
+                    await setDoc(docRef, {
+                        pageName: pageName,
+                        password: password, // In production, hash this!
+                        title: "My Awesome Page",
+                        description: "Welcome to my toolkit.",
+                        avatar: "",
+                        theme: "dark",
+                        links: []
+                    });
+                    msg.innerText = 'Success! Redirecting...';
+                    msg.className = 'mt-4 text-center text-sm text-green-400';
+                    sessionStorage.setItem('user', pageName);
+                    setTimeout(() => window.location.href = 'admin.html', 1500);
+                }
+            } catch (error) {
+                console.error(error);
+                msg.innerText = 'Error creating page.';
+                msg.className = 'mt-4 text-center text-sm text-red-400';
+            }
+        });
+
+        // Login Logic
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const pageName = document.getElementById('loginName').value.trim().toLowerCase();
+            const password = document.getElementById('loginPass').value;
+            const msg = document.getElementById('msg');
+
+            msg.innerText = 'Verifying...';
+            msg.className = 'mt-4 text-center text-sm text-yellow-400';
+
+            try {
+                const docRef = doc(db, "pages", pageName);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.password === password) {
+                        sessionStorage.setItem('user', pageName);
+                        window.location.href = 'admin.html';
+                    } else {
+                        msg.innerText = 'Invalid password.';
+                        msg.className = 'mt-4 text-center text-sm text-red-400';
+                    }
+                } else {
+                    msg.innerText = 'Page not found.';
+                    msg.className = 'mt-4 text-center text-sm text-red-400';
+                }
+            } catch (error) {
+                console.error(error);
+                msg.innerText = 'Login error.';
+            }
+        });
+    </script>
+</body>
+</html>
