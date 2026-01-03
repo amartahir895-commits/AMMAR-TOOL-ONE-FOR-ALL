@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                    },
+                    keyframes: {
+                        pop: {
+                            '0%': { opacity: '0', transform: 'scale(0.9)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-900 min-h-screen text-white font-sans">
+
+    <div class="max-w-md mx-auto min-h-screen relative pb-10">
+        
+        <!-- Header Background -->
+        <div class="h-48 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-b-[2.5rem] relative overflow-hidden">
+             <div class="absolute inset-0 bg-black/10"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="px-6 -mt-16 relative z-10 text-center">
+            
+            <!-- Avatar Placeholder / Info -->
+            <div class="bg-gray-800 w-32 h-32 mx-auto rounded-full border-4 border-gray-900 shadow-xl flex items-center justify-center text-4xl mb-4 overflow-hidden">
+                <i class="fas fa-user-astronaut text-gray-500"></i>
+            </div>
+
+            <h1 id="pTitle" class="text-2xl font-bold mb-2">Loading...</h1>
+            <p id="pDesc" class="text-gray-400 mb-8 text-sm">Please wait while we fetch the profile.</p>
+
+            <!-- Links Container -->
+            <div id="linksContainer" class="space-y-4">
+                <!-- Links injected here -->
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-12 opacity-50 text-xs">
+                Built with Professor Ammar tool
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic -->
+    <script type="module">
+        import { db, doc, getDoc } from './config.js';
+
+        // Get Page ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const pageId = urlParams.get('page');
+
+        if (!pageId) {
+            window.location.href = 'index.html';
+        }
+
+        async function loadProfile() {
+            try {
+                const docRef = doc(db, "pages", pageId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    document.title = `${data.title} | LinkBuilder`;
+                    document.getElementById('pTitle').innerText = data.title;
+                    document.getElementById('pDesc').innerText = data.description;
+
+                    const container = document.getElementById('linksContainer');
+                    container.innerHTML = '';
+
+                    data.links.forEach((link, index) => {
+                        const a = document.createElement('a');
+                        a.href = link.url;
+                        a.target = "_blank";
+                        a.className = "block bg-gray-800 hover:bg-gray-700 hover:scale-[1.02] transition-all duration-300 p-4 rounded-xl border border-gray-700 flex items-center gap-4 opacity-0 animate-pop";
+                        a.style.animationDelay = `${index * 100}ms`;
+
+                        a.innerHTML = `
+                            <div class="w-10 h-10 flex-shrink-0">
+                                ${link.image 
+                                    ? `<img src="${link.image}" class="w-full h-full rounded-full object-cover">` 
+                                    : `<div class="w-full h-full rounded-full bg-gray-600 flex items-center justify-center"><i class="fas fa-globe"></i></div>`
+                                }
+                            </div>
+                            <span class="font-semibold text-lg flex-1 text-left">${link.name}</span>
+                            <i class="fas fa-chevron-right text-gray-500"></i>
+                        `;
+                        container.appendChild(a);
+                    });
+
+                } else {
+                    document.getElementById('pTitle').innerText = "404 Not Found";
+                    document.getElementById('pDesc').innerText = "This page does not exist.";
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('pTitle').innerText = "Error";
+                document.getElementById('pDesc').innerText = "Could not load profile.";
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>
